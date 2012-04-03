@@ -14,7 +14,7 @@
 
 
 
-int TVL1::nrIterations = 10;
+int TVL1::nrIterations = 40;
 float TVL1::lambda = 0.3;
 float TVL1::tau = 0.02;
 float TVL1::sigma;
@@ -73,6 +73,10 @@ FloatImageType::Pointer TVL1::Denoise(void)
     duplicator->Update();
 
     FloatImageType::Pointer u      = duplicator->GetOutput();
+
+    duplicator = DuplicatorType::New();
+	duplicator->SetInputImage(this->img);
+    duplicator->Update();
     FloatImageType::Pointer u_dash = duplicator->GetOutput();
 
 
@@ -247,10 +251,10 @@ FloatImageType::Pointer TVL1::Denoise(void)
                     if(u_temp - f_value > TVL1::tau_times_lambda)
                       u->SetPixel(index, u_temp - TVL1::tau_times_lambda);
 
-                    if(u_temp - f_value < -TVL1::tau_times_lambda)
+                    else if(u_temp - f_value < -TVL1::tau_times_lambda)
                       u->SetPixel(index, u_temp + TVL1::tau_times_lambda);
 
-                    if(abs(u_temp - f_value) <= TVL1::tau_times_lambda)
+                    else //if(abs(u_temp - f_value) <= TVL1::tau_times_lambda)
                       u->SetPixel(index, f_value);
 
                     #endif
@@ -268,6 +272,7 @@ FloatImageType::Pointer TVL1::Denoise(void)
 		}
 	}
 
+	duplicator = DuplicatorType::New();
 	duplicator->SetInputImage(u_dash);
     duplicator->Update();
 
