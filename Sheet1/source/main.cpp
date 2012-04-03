@@ -3,6 +3,7 @@
 
 #include "Definitions.h"
 #include "VolumeHandler.h"
+#include "TVL1.h"
 
 int main(int argc, char** argv)
 {
@@ -29,19 +30,12 @@ int main(int argc, char** argv)
   float min_orig_val,max_orig_val;
   volumeHandler.getOrigMinMaxValues(min_orig_val, max_orig_val);
 
-  std::cout << "min_ and max_orig_val: " << min_orig_val << " ; " << max_orig_val << std::endl;
+  TVL1 myInstance(img);
 
-  // invert picture
-  itk::ImageRegionIterator<FloatImageType> it(img, img->GetLargestPossibleRegion().GetSize());
-  
-  while(!it.IsAtEnd())
-  {
-    it.Set(1.0f - it.Get());
-    ++it;
-  }
+  myInstance.Denoise();
 
   volumeHandler.setVolume(img, min_orig_val, max_orig_val);
-  volumeHandler.writeVolumeBinary("inverted_volume.mhd");
+  volumeHandler.writeVolumeBinary("denoised_volume.mhd");
   
   return EXIT_SUCCESS;
 }

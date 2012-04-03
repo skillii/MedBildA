@@ -38,8 +38,6 @@ void TVL1::Denoise(void)
 	PrimalImageType::IndexType index_p;
 
 	PrimalImageType::Pointer p = PrimalImageType::New();
-	FloatImageType::Pointer u;
-	FloatImageType::Pointer u_quer = FloatImageType::New();
 
 	size = img->GetLargestPossibleRegion().GetSize();
 	size_p[0] = size[0]; size_p[1] = size[1]; size_p[2] = size[2];
@@ -48,14 +46,11 @@ void TVL1::Denoise(void)
 
 	index_p[0] = 0; index_p[1] = 0; index_p[2] = 0; index_p[3] = 0;
 
-	FloatImageType::RegionType region;
-	region.SetSize(size_p);
-	region.SetIndex(index_p);
 
 	//==================================================================
 	//BUILD PRIMAL IMAGE, Start value = 0
 	//==================================================================
-	p->SetRegions(region);
+	p->SetRegions(size_p);
 	p->Allocate();
 
     //Set pixels in p image to 0
@@ -103,9 +98,9 @@ void TVL1::Denoise(void)
 
     //TODO RANDABFRAGEN!!!!!
 
-    int x_size = img->GetLargestPossibleRegion().GetSize(0);
-    int y_size = img->GetLargestPossibleRegion().GetSize(1);
-    int z_size = img->GetLargestPossibleRegion().GetSize(2);
+    unsigned int x_size = img->GetLargestPossibleRegion().GetSize(0);
+    unsigned int y_size = img->GetLargestPossibleRegion().GetSize(1);
+    unsigned int z_size = img->GetLargestPossibleRegion().GetSize(2);
 
 	for(iteration = 0; iteration < nrIterations; iteration++)
 	{
@@ -206,13 +201,13 @@ void TVL1::Denoise(void)
                     f_value = this->img->GetPixel(index);
 
                     if(u_value - f_value > TVL1::tau_times_lambda)
-                      u->SetPixel(u_value - TVL1::tau_times_lambda);
+                      u->SetPixel(index, u_value - TVL1::tau_times_lambda);
 
                     if(u_value - f_value < -TVL1::tau_times_lambda)
-                      u->SetPixel(u_value + TVL1::tau_times_lambda);
+                      u->SetPixel(index, u_value + TVL1::tau_times_lambda);
 
                     if(abs(u_value - f_value) <= TVL1::tau_times_lambda)
-                      u->SetPixel(f_value);
+                      u->SetPixel(index, f_value);
 
                     //=========================================================
                     //Finally perform overrelaxation
@@ -222,5 +217,10 @@ void TVL1::Denoise(void)
 			}
 		}
 	}
+
+	duplicator->SetInputImage(u_dash);
+    duplicator->Update();
+
+    this->img = duplicator->GetOutput();
 }
 
