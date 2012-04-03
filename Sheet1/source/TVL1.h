@@ -15,6 +15,8 @@ class TVL1 {
 
 	static int nrIterations;
 	static float lambda, tau, sigma;
+	static float tau_times_lambda;
+	static float theta;
 public:
 	TVL1(FloatImageType::Pointer img);
 	virtual ~TVL1();
