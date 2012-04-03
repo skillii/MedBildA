@@ -12,10 +12,10 @@
 
 
 
-static int TVL1::nrIterations = 500;
-static float TVL1::lambda = 0.3;
-static float TVL1::tau = 0.02;
-static float TVL1::sigma;
+int TVL1::nrIterations = 500;
+float TVL1::lambda = 0.3;
+float TVL1::tau = 0.02;
+float TVL1::sigma;
 
 TVL1::TVL1(FloatImageType::Pointer img) {
 	 TVL1::sigma = 1/sqrt(12*tau);
@@ -28,31 +28,29 @@ TVL1::~TVL1() {
 
 void TVL1::Denoise(void)
 {
-	int x,y,z;
+	unsigned x,y,z;
 
-	FloatImageType::IndexType start;
 	FloatImageType::SizeType size;
+	PrimalImageType::SizeType size_p;
 
-	FloatImageType::Pointer p = FloatImageType::New();
-	FloatImageType::Pointer u = FloatImageType::New();
+	PrimalImageType::Pointer p = PrimalImageType::New();
+	FloatImageType::Pointer u;
 	FloatImageType::Pointer u_quer = FloatImageType::New();
 
-	start[0] = 0; start[1] = 0; start[2] = 0;
 	size = img->GetLargestPossibleRegion().GetSize();
-
-	FloatImageType::RegionType region;
-	region.SetSize(size);
-	region.SetIndex(start);
+	size_p[0] = size[0]; size_p[1] = size[1]; size_p[2] = size[2];
+	size_p[3] = 3;	//vector of length 3 for each pixel in the image
 
 
-	p->SetRegion(region);
+	p->SetRegions(size_p);
 	p->Allocate();
 
 
-	u->SetRegion(region);
-	u->Allocate();
+	//u->SetRegions(size);
+	//u->Allocate();
+	u = this->img->Clone();
 
-	u_quer->SetRegion(region);
+	u_quer->SetRegions(size);
 	u_quer->Allocate();
 
 	int iteration;
@@ -65,7 +63,7 @@ void TVL1::Denoise(void)
 			{
 				for(z = 0; z < img->GetLargestPossibleRegion().GetSize(2); z++)
 				{
-					FloatImageType:IndexType index;
+					FloatImageType::IndexType index;
 					index[0] = x; index[1] = y; index[2] = z;
 
 

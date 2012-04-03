@@ -12,6 +12,7 @@
 #include "itkMinimumMaximumImageCalculator.h"
 
 typedef itk::Image< float, 3 > FloatImageType;
+typedef itk::Image< float, 4 > PrimalImageType;
 
 // used in VolumeHandler
 typedef itk::Image< signed short, 3 > ShortImageType;

@@ -32,7 +32,7 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/source)
 
-add_executable(miaKUSheet1 source/main.cpp source/VolumeHandler.h source/VolumeHandler.cpp source/Definitions.h)
+add_executable(miaKUSheet1 source/main.cpp source/VolumeHandler.h source/VolumeHandler.cpp source/Definitions.h source/TVL1.cpp)
 
 target_link_libraries(miaKUSheet1 ${ITK_LIBRARIES})
 
