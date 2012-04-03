@@ -10,6 +10,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 #include "itkMinimumMaximumImageCalculator.h"
+#include "itkImageDuplicator.h"
 
 typedef itk::Image< float, 3 > FloatImageType;
 typedef itk::Image< float, 4 > PrimalImageType;
