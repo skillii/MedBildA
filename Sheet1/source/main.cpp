@@ -36,7 +36,8 @@ int main(int argc, char** argv)
   myInstance.Denoise();
 
   volumeHandler.setVolume(img, min_orig_val, max_orig_val);
-  volumeHandler.writeVolumeBinary("denoised_volume.mhd");
+  volumeHandler.writeVolume("denoised_volume.mhd");
+  //volumeHandler.writeVolumeBinary("denoised_volume.mhd");
   
   return EXIT_SUCCESS;
 }

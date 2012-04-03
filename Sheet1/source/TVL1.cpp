@@ -12,7 +12,9 @@
 #include <iostream>
 
 
-int TVL1::nrIterations = 10;
+
+
+int TVL1::nrIterations = 50;
 float TVL1::lambda = 0.3;
 float TVL1::tau = 0.02;
 float TVL1::sigma;
@@ -217,7 +219,13 @@ void TVL1::Denoise(void)
                     u_value = u->GetPixel(index);
                     f_value = this->img->GetPixel(index);
 
-                    /*
+
+                    #ifdef USE_PRIMAL_DUAL_ROF
+                      u->SetPixel(index, (u_temp + tau*lambda*f_value) / (1+ tau*lambda));
+
+                    #endif
+                    /* TVL1 Variante 1...
+
                     if(u_value - f_value > TVL1::tau_times_lambda)
                       u->SetPixel(index, u_value - TVL1::tau_times_lambda);
 
@@ -227,6 +235,9 @@ void TVL1::Denoise(void)
                     if(abs(u_value - f_value) <= TVL1::tau_times_lambda)
                       u->SetPixel(index, f_value); */
 
+
+                    #ifdef USE_TVL1
+
                     if(u_temp - f_value > TVL1::tau_times_lambda)
                       u->SetPixel(index, u_temp - TVL1::tau_times_lambda);
 
@@ -235,6 +246,8 @@ void TVL1::Denoise(void)
 
                     if(abs(u_temp - f_value) <= TVL1::tau_times_lambda)
                       u->SetPixel(index, f_value);
+
+                    #endif
 
                     //std::cout << "----Resolvent step calculated" << std::endl;
 

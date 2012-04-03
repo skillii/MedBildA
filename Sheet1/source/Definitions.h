@@ -24,4 +24,9 @@ typedef itk::ImageFileWriter< ShortImageType > ShortVolumeWriterType;
 typedef itk::ImageFileWriter< UCharImageType > UCharVolumeWriterType;
 typedef itk::MinimumMaximumImageCalculator< FloatImageType > MinMaxCalculator;
 
+
+//Attention!! Only one or the other!
+//#define USE_PRIMAL_DUAL_ROF 1
+#define USE_TVL1 1
+
 #endif
