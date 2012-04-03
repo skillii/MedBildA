@@ -9,7 +9,7 @@
 #include "Definitions.h"
 #include "TVL1.h"
 #include <cmath>
-
+#include <iostream>
 
 
 int TVL1::nrIterations = 500;
@@ -104,12 +104,15 @@ void TVL1::Denoise(void)
 
 	for(iteration = 0; iteration < nrIterations; iteration++)
 	{
+		std::cout << "Iteration #" << iteration << std::endl;
+
 		for(x = 0; x < x_size ; x++)
 		{
 			for(y = 0; y < y_size; y++)
 			{
 			    for(z = 0; z < z_size; z++)
 				{
+			    	 std::cout << "Coordinate " << x << "/" << y << "/" << z << std::endl;
 				    //Indices for gradient, forward differences
 				    index[0]    = x;      index[1] = y;      index[2] = z;
 				    index_dx[0] = x+1; index_dx[1] = y;   index_dx[2] = z;
@@ -121,6 +124,8 @@ void TVL1::Denoise(void)
 				    //=========================================================
 				    dx = dy = dz = 0;
 
+				    std::cout << "---- Starting Gradient calculation" << std::endl;
+
 				    if(x+1 < x_size)
 				      dx = u_dash->GetPixel(index_dx) - u_dash->GetPixel(index);
 
@@ -131,6 +136,8 @@ void TVL1::Denoise(void)
 				      dz = u_dash->GetPixel(index_dz) - u_dash->GetPixel(index);
 
                     dx *= sigma; dy *= sigma; dz *= sigma;
+
+                    std::cout << "----Gradient calculated" << std::endl;
 
                     //=========================================================
                     //Calculate dual update
@@ -144,6 +151,8 @@ void TVL1::Denoise(void)
 
                     index_p[3] = 2;
                     p_temp[2] = p->GetPixel(index_p) + dz;
+
+                    std::cout << "----Dual update calculated" << std::endl;
 
                     //=========================================================
                     //Project p and update p image
@@ -162,6 +171,8 @@ void TVL1::Denoise(void)
                       index_p[3] = 1;  p->SetPixel(index_p, p_temp[1] / p_norm);
                       index_p[3] = 2;  p->SetPixel(index_p, p_temp[2] / p_norm);
                     }
+
+                    std::cout << "----P projected and updated" << std::endl;
                     //=========================================================
                     //Calculate primal update (u_temp)
                     //=========================================================
@@ -194,6 +205,7 @@ void TVL1::Denoise(void)
                     u_temp *= tau;
                     u_temp += u->GetPixel(index);
 
+                    std::cout << "----Primal update calculated" << std::endl;
                     //=========================================================
                     //Perform resolvent step for u
                     //=========================================================
@@ -209,10 +221,14 @@ void TVL1::Denoise(void)
                     if(abs(u_value - f_value) <= TVL1::tau_times_lambda)
                       u->SetPixel(index, f_value);
 
+                    std::cout << "----Resolvent step calculated" << std::endl;
+
                     //=========================================================
                     //Finally perform overrelaxation
                     //=========================================================
                     u_dash->SetPixel(index,u->GetPixel(index) + theta*(u->GetPixel(index) - u_value));
+
+                    std::cout << "----Overrelaxation calculated" << std::endl;
 				}
 			}
 		}
@@ -220,6 +236,8 @@ void TVL1::Denoise(void)
 
 	duplicator->SetInputImage(u_dash);
     duplicator->Update();
+
+    std::cout << "Done with calculations!" << std::endl;
 
     this->img = duplicator->GetOutput();
 }
