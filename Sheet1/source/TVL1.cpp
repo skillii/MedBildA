@@ -217,5 +217,10 @@ void TVL1::Denoise(void)
 			}
 		}
 	}
+
+	duplicator->SetInputImage(u_dash);
+    duplicator->Update();
+
+    this->img = duplicator->GetOutput();
 }
 
