@@ -10,7 +10,7 @@
 
 class TVL1 {
 	FloatImageType::Pointer img;
-
+    float max_value;
 
 
 	static int nrIterations;
@@ -18,10 +18,10 @@ class TVL1 {
 	static float tau_times_lambda;
 	static float theta;
 public:
-	TVL1(FloatImageType::Pointer img);
+	TVL1(FloatImageType::Pointer img, float max_value);
 	virtual ~TVL1();
 
-	void Denoise();
+	FloatImageType::Pointer Denoise();
 };
 
 #endif /* TVL1_H_ */

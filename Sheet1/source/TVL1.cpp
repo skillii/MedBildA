@@ -14,24 +14,28 @@
 
 
 
-int TVL1::nrIterations = 50;
+int TVL1::nrIterations = 10;
 float TVL1::lambda = 0.3;
 float TVL1::tau = 0.02;
 float TVL1::sigma;
 float TVL1::tau_times_lambda;
-float TVL1::theta = 0.3; //Overrelaxation constant
+float TVL1::theta = 0.7; //Overrelaxation constant
 
-TVL1::TVL1(FloatImageType::Pointer img) {
+TVL1::TVL1(FloatImageType::Pointer img, float max_value)
+{
 	 TVL1::sigma = 1/sqrt(12*tau);
 	 TVL1::tau_times_lambda = TVL1::tau * TVL1::lambda;
 	 this->img = img;
+	 this->max_value = max_value;
 }
 
-TVL1::~TVL1() {
+TVL1::~TVL1()
+
+{
 }
 
 
-void TVL1::Denoise(void)
+FloatImageType::Pointer TVL1::Denoise(void)
 {
 	unsigned x,y,z;
 
@@ -72,6 +76,11 @@ void TVL1::Denoise(void)
     FloatImageType::Pointer u_dash = duplicator->GetOutput();
 
 
+    FloatImageType::IndexType index;
+    unsigned int x_size = img->GetLargestPossibleRegion().GetSize(0);
+    unsigned int y_size = img->GetLargestPossibleRegion().GetSize(1);
+    unsigned int z_size = img->GetLargestPossibleRegion().GetSize(2);
+
 
 
     //TODO ?????????????
@@ -90,7 +99,7 @@ void TVL1::Denoise(void)
     FloatImageType::PixelType dy;
     FloatImageType::PixelType dz;
 
-    FloatImageType::IndexType index;
+
     FloatImageType::IndexType index_dx;
     FloatImageType::IndexType index_dy;
     FloatImageType::IndexType index_dz;
@@ -104,12 +113,6 @@ void TVL1::Denoise(void)
     float p_norm;
     float u_temp;
 
-
-    //TODO RANDABFRAGEN!!!!!
-
-    unsigned int x_size = img->GetLargestPossibleRegion().GetSize(0);
-    unsigned int y_size = img->GetLargestPossibleRegion().GetSize(1);
-    unsigned int z_size = img->GetLargestPossibleRegion().GetSize(2);
 
 	for(iteration = 0; iteration < nrIterations; iteration++)
 	{
@@ -134,14 +137,17 @@ void TVL1::Denoise(void)
 				    dx = dy = dz = 0;
 
 				    if(x+1 < x_size)
-				      dx = u_dash->GetPixel(index_dx) - u_dash->GetPixel(index);
+				      dx = u_dash->GetPixel(index_dx) -
+				           u_dash->GetPixel(index);
 
 
 				    if(y+1 < y_size)
-				      dy = u_dash->GetPixel(index_dy) - u_dash->GetPixel(index);
+				      dy = u_dash->GetPixel(index_dy) -
+				           u_dash->GetPixel(index);
 
 				    if(z+1 < z_size)
-				      dz = u_dash->GetPixel(index_dz) - u_dash->GetPixel(index);
+				      dz = u_dash->GetPixel(index_dz) -
+				           u_dash->GetPixel(index);
 
                     dx *= sigma; dy *= sigma; dz *= sigma;
 
@@ -268,5 +274,7 @@ void TVL1::Denoise(void)
     std::cout << "Done with calculations!" << std::endl;
 
     this->img = duplicator->GetOutput();
+
+    return this->img;
 }
 

@@ -31,11 +31,11 @@ int main(int argc, char** argv)
   float min_orig_val,max_orig_val;
   volumeHandler.getOrigMinMaxValues(min_orig_val, max_orig_val);
 
-  TVL1 myInstance(img);
+  TVL1 myInstance(img, max_orig_val);
 
-  myInstance.Denoise();
+  FloatImageType::Pointer result = myInstance.Denoise();
 
-  volumeHandler.setVolume(img, min_orig_val, max_orig_val);
+  volumeHandler.setVolume(result, min_orig_val, max_orig_val);
   volumeHandler.writeVolume("denoised_volume.mhd");
   //volumeHandler.writeVolumeBinary("denoised_volume.mhd");
   
