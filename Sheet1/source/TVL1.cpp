@@ -14,7 +14,7 @@
 
 
 
-int TVL1::nrIterations = 40;
+int TVL1::nrIterations = 500;
 float TVL1::lambda = 0.3;
 float TVL1::tau = 0.02;
 float TVL1::sigma;
@@ -117,6 +117,9 @@ FloatImageType::Pointer TVL1::Denoise(void)
     float p_norm;
     float u_temp;
 
+    index_dx_bw[3] = 0;
+    index_dy_bw[3] = 1;
+    index_dz_bw[3] = 2;
 
 	for(iteration = 0; iteration < nrIterations; iteration++)
 	{
@@ -124,16 +127,38 @@ FloatImageType::Pointer TVL1::Denoise(void)
 
 		for(x = 0; x < x_size ; x++)
 		{
+			index[0]    = x;
+			index_dx[0] = x+1;
+			index_dy[0] = x;
+			index_dz[0] = x;
+			index_p[0] = x;
+
+			index_dx_bw[0] = x - 1;
+			index_dy_bw[0] = x;
+			index_dz_bw[0] = x;
+
+
 			for(y = 0; y < y_size; y++)
 			{
+				index[1] = y;
+				index_dx[1] = y;
+				index_dy[1] = y+1;
+				index_dz[1] = y;
+				index_p[1] = y;
+
+				index_dx_bw[1] = y;
+				index_dy_bw[1] = y - 1;
+				index_dz_bw[1] = y;
+
 			    for(z = 0; z < z_size; z++)
 				{
 			    	 //std::cout << "Coordinate " << x << "/" << y << "/" << z << std::endl;
 				    //Indices for gradient, forward differences
-				    index[0]    = x;      index[1] = y;      index[2] = z;
-				    index_dx[0] = x+1; index_dx[1] = y;   index_dx[2] = z;
-				    index_dy[0] = x;   index_dy[1] = y+1; index_dy[2] = z;
-				    index_dz[0] = x;   index_dz[1] = y;   index_dz[2] = z+1;
+				    index[2] = z;
+				    index_dx[2] = z;
+				    index_dy[2] = z;
+				    index_dz[2] = z+1;
+				    index_p[2] = z;
 
 				    //=========================================================
 				    //Calculate gradient of u_dash
@@ -160,8 +185,7 @@ FloatImageType::Pointer TVL1::Denoise(void)
                     //=========================================================
                     //Calculate dual update
                     //=========================================================
-                    index_p[0] = x; index_p[1] = y; index_p[2] = z; index_p[3] = 0;
-
+                    index_p[3] = 0;
                     p_temp[0] = p->GetPixel(index_p) + dx;
 
                     index_p[3] = 1;
@@ -194,10 +218,10 @@ FloatImageType::Pointer TVL1::Denoise(void)
                     //=========================================================
                     //Calculate primal update (u_temp)
                     //=========================================================
-                        index_p[0] = x;         index_p[1] = y;         index_p[2] = z;         index_p[3] = 0;
-                    index_dx_bw[0] = x - 1; index_dx_bw[1] = y;     index_dx_bw[2] = z;     index_dx_bw[3] = 0;
-                    index_dy_bw[0] = x;     index_dy_bw[1] = y - 1; index_dy_bw[2] = z;     index_dy_bw[3] = 1;
-                    index_dz_bw[0] = x;     index_dz_bw[1] = y;     index_dz_bw[2] = z - 1; index_dz_bw[3] = 2;
+                    index_p[3] = 0;
+                    index_dx_bw[2] = z;
+                    index_dy_bw[2] = z;
+                    index_dz_bw[2] = z - 1;
 
 
                     if(x - 1 > 0)
