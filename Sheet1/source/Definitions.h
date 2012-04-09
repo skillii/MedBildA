@@ -12,6 +12,13 @@
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkImageDuplicator.h"
 
+#include "itkOtsuThresholdImageFilter.h"
+#include "itkBinaryImageToLabelMapFilter.h"
+#include "itkShapeLabelMapFilter.h"
+#include "itkLabelMapToLabelImageFilter.h"
+#include "itkBinaryImageToShapeLabelMapFilter.h"
+
+
 typedef itk::Image< float, 3 > FloatImageType;
 typedef itk::Image< float, 4 > PrimalImageType;
 
@@ -23,5 +30,16 @@ typedef itk::ImageFileWriter< FloatImageType > FloatVolumeWriterType;
 typedef itk::ImageFileWriter< ShortImageType > ShortVolumeWriterType;
 typedef itk::ImageFileWriter< UCharImageType > UCharVolumeWriterType;
 typedef itk::MinimumMaximumImageCalculator< FloatImageType > MinMaxCalculator;
+
+
+typedef itk::OtsuThresholdImageFilter<FloatImageType, FloatImageType> ThresholdFilterType;
+typedef itk::BinaryImageToShapeLabelMapFilter<FloatImageType> ConnectedComponentFilter;
+typedef itk::ShapeLabelMapFilter<ConnectedComponentFilter::OutputImageType, ConnectedComponentFilter::OutputImageType> ShapeLabelFilter;
+typedef itk::LabelMapToLabelImageFilter<ConnectedComponentFilter::OutputImageType, FloatImageType> LabelMapToLabelImageFilter;
+
+
+//Attention!! Only one or the other!
+//#define USE_PRIMAL_DUAL_ROF 1
+#define USE_TVL1 1
 
 #endif

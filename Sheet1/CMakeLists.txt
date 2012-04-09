@@ -26,13 +26,16 @@ endif()
 include(${ITK_USE_FILE})
 
 # for openmp
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -g")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+
+#SET(CMAKE_BUILD_TYPE "Release")
+
 
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/source)
 
-add_executable(miaKUSheet1 source/main.cpp source/VolumeHandler.h source/VolumeHandler.cpp source/Definitions.h source/TVL1.cpp)
+add_executable(miaKUSheet1 source/main.cpp source/VolumeHandler.h source/VolumeHandler.cpp source/Definitions.h source/TVL1.cpp source/LungSegmentation.cpp)
 
 target_link_libraries(miaKUSheet1 ${ITK_LIBRARIES})
 
