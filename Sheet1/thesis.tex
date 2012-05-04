@@ -1,0 +1,90 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Author: Martin Weiglhofer <weiglhofer@ist.tugraz.at>
+%
+% $Author: $
+% $Date: $
+% $Revision: $
+%
+% $Log: $
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\documentclass{thesis}
+
+\usepackage{natbib} % Because of the \citet{} and \citep{} commands, I
+                    % recommend to use natbib
+
+%define an alias for using \citealias of natbib
+\defcitealias{weiglhofer2009usingspectrum}{proceedings of \textsc{ase'09}} 
+
+\makeatother
+
+\begin{document}
+
+% Information about the document (used for building the titlepage)
+\subject{Dissertation}
+\title{Automated Software Conformance Testing}
+\author{Martin Weiglhofer}
+\date{Graz, 2009}
+\supervisor{Univ.-Prof. Dipl.-Ing. Dr. techn. Franz Wotawa}
+\secondreviewer{Dr. ir. Gerrit Jan Tretmans, Associate Professor}
+\institute{Institute for Software Technology}
+\logo{images/TUG}
+
+\maketitle
+
+\frontmatter
+
+%----------------------------------------------------------------------
+\chapter*{Abstract (English)}
+This is my English abstract ...
+
+%----------------------------------------------------------------------
+\chapter*{Abstract (German)}
+Das ist meine Deutsche Zusammenfassung ...
+
+%----------------------------------------------------------------------
+\chapter*{Acknowledgement}
+I would like to thank ...
+
+\vspace{2cm}
+\begin{flushright}
+Your Name \\ {\small Graz, 2009}
+\end{flushright}
+\newpage
+
+%----------------------------------------------------------------------
+% Statutory Declaration as defined by the Graz University of
+% Technology (1st Dec. 2008)
+\statdecl
+
+%----------------------------------------------------------------------
+% Other tables and lists ...
+\tableofcontents
+\listoffigures
+\listoftables
+
+\mainmatter
+
+%----------------------------------------------------------------------
+\chapter{Introduction}
+% Use the \basedon command to describe which publications build the
+% basis for this thesis chapter
+\basedon{Parts of the contents of this chapter have been published in\\ the
+  \citetalias{weiglhofer2009usingspectrum} \citep{weiglhofer2009usingspectrum}.}
+
+bla, bla,
+\newpage
+bla,bla
+\newpage
+bla,bla
+
+\appendix
+
+\bibliography{thesis}
+
+
+\end{document}
+
