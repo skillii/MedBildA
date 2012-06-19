@@ -13,10 +13,10 @@
 
 
 
-#define START_LEVEL (1) //number of scale-levels to skip
+#define START_LEVEL (0) //number of scale-levels to skip
 
 const int TubeDetection::scale_levels = SCALE_LEVELS;
-const float TubeDetection::tube_r[SCALE_LEVELS] = {1.5, 1.5, 1.5};
+const float TubeDetection::tube_r[SCALE_LEVELS] = {1.5, 1.5, 1.5, 1.5};
 const int TubeDetection::alpha_steps = 16;
 
 
@@ -221,6 +221,42 @@ void TubeDetection::calcGradients()
     std::cout << "Finished gradient calculation" << std::endl;
 }
 
+void TubeDetection::allocateEigenvectorImage()
+{
+    EigenVImageType::IndexType start;
+    EigenVImageType::SizeType size;
+    EigenVImageType::RegionType region;
+
+    start[0] = 0;
+    start[1] = 0;
+    start[2] = 0;
+    start[3] = 0;
+
+    size[0] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(0);
+    size[2] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(1);
+    size[3] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(2);
+    size[4] = 3;
+
+    eigenvectors[0] = EigenVImageType::New();
+    eigenvectors[1] = EigenVImageType::New();
+    eigenvectors[2] = EigenVImageType::New();
+
+
+    region.SetSize(size);
+    region.SetIndex(start);
+
+
+
+    eigenvectors[0]->SetRegions(region);
+    eigenvectors[1]->SetRegions(region);
+    eigenvectors[2]->SetRegions(region);
+
+
+    eigenvectors[0]->Allocate();
+    eigenvectors[1]->Allocate();
+    eigenvectors[2]->Allocate();
+}
+
 void TubeDetection::calcMedialness()
 {
     unsigned x,y,z;
@@ -241,6 +277,7 @@ void TubeDetection::calcMedialness()
     FloatImageType::Pointer medialnessimage;
 
     std::cout << "Starting calculating medialness for level: ";
+
 
     for(unsigned i = 0; i < this->imagePyramid.size(); i++)
     {
@@ -285,6 +322,36 @@ void TubeDetection::calcMedialness()
 
                     NumericsHelper::calculateEigenDecompositionSymmetric3x3(a,b,d);
 
+                    //////save Eigenvectors, with ascending Eigenvalues:
+
+
+                    /*itk::Vector<float, 3> v, grad;
+                    itk::Vector<float, 3> v_i[2];
+
+
+
+                    int min_ev;
+                    NumericsHelper::min(d, 3, &min_ev);
+
+                    eigenvectors[0]->set
+
+                    int p,q;
+                    for(p = 0, q = 0; p < 3; p++)
+                    {
+                        if(p != min_ev)
+                        {
+                            v_i[q].SetElement(0, ev[i][0]);
+                            v_i[q].SetElement(1, ev[i][1]);
+                            v_i[q].SetElement(2, ev[i][2]);
+                            q++;
+                        }
+                    }
+*/
+
+                    /////end saving Eigenvectors
+
+
+
                     float medialness = calcMedialness(i, x, y, z, d, b);
 
                     medialnessimage->SetPixel(index, medialness);
@@ -296,6 +363,78 @@ void TubeDetection::calcMedialness()
     }
 
     std::cout << std::endl << "Finished calculation of medialness" << std::endl;
+}
+
+void TubeDetection::calcMaxMedialness()
+{
+    unsigned x,y,z;
+
+    unsigned int x_size;
+    unsigned int y_size;
+    unsigned int z_size;
+
+    FloatImageType::Pointer max_medialnessimage;
+
+    FloatImageType::IndexType index;
+
+    float scale_index[3];
+
+    DuplicatorType::Pointer duplicator = DuplicatorType::New();
+    duplicator->SetInputImage(medialnessImages.at(medialnessImages.size() - 1));
+    duplicator->Update();
+
+    max_medialnessimage = duplicator->GetOutput();
+
+
+    std::cout << "Starting calculating maximum of medialness." << std::endl;
+
+    x_size = medialnessImages.at(medialnessImages.size() - 1)->GetLargestPossibleRegion().GetSize(0);
+    y_size = medialnessImages.at(medialnessImages.size() - 1)->GetLargestPossibleRegion().GetSize(1);
+    z_size = medialnessImages.at(medialnessImages.size() - 1)->GetLargestPossibleRegion().GetSize(2);
+
+    float current_medialness_value;
+    float max_medialness_value;
+
+    for(x = 0; x < x_size; x++)
+    {
+      index[0] = x;
+
+      if(x % 10 == 0)
+        std::cout << "x " << x << std::endl;
+
+      for(y = 0; y < y_size; y++)
+      {
+        index[1] = y;
+
+        for(z = 0; z < z_size; z++)
+        {
+          index[2] = z;
+
+          //This is the value we obtain from the largest resolution
+          max_medialness_value = max_medialnessimage->GetPixel(index);
+
+          //Now we go through all scale levels and look for a maximum..
+          for(unsigned i = 0; i < this->medialnessImages.size() - 1; i++)
+          {
+            scale_index[0] = static_cast<float>(x) / powf(2,medialnessImages.size() - 1 - i);
+            scale_index[1] = static_cast<float>(y) / powf(2,medialnessImages.size() - 1 - i);
+            scale_index[2] = static_cast<float>(z) / powf(2,medialnessImages.size() - 1 - i);
+
+            current_medialness_value = NumericsHelper::trilinearInterp(medialnessImages.at(i), scale_index[0], scale_index[1], scale_index[2]);
+
+            if(current_medialness_value > max_medialness_value)
+              max_medialness_value = current_medialness_value;
+
+          }
+
+          //Now write the maximum into the image again
+          max_medialnessimage->SetPixel(index,max_medialness_value);
+        }
+      }
+    }
+
+   this->maxMedialnessOverScales = max_medialnessimage;
+   std::cout << "Finished calculating maximum of medialness." << std::endl;
 }
 
 float TubeDetection::calcMedialness(unsigned level, unsigned x, unsigned y, unsigned z, float ew[3], float ev[3][3])
@@ -405,9 +544,79 @@ float TubeDetection::calcMedialness(unsigned level, unsigned x, unsigned y, unsi
     if(final < 0)
         final = 0;
 
+    //return final; DUMMY!!!
+
     return final;
 }
 
 
+/*void TubeDetection::calcNonMaximumSupression()
+{
+    unsigned x,y,z;
+
+    unsigned int x_size;
+    unsigned int y_size;
+    unsigned int z_size;
+
+
+    FloatImageType::IndexType index;
+    FloatImageType::IndexType neighbourindex;
+
+    HessianFilter::OutputImageType::PixelType current_hessian;
+
+
+    std::cout << "Starting calculating non Maximum Supression" << std::endl;
+
+    x_size = maxMedialnessOverScales->GetLargestPossibleRegion().GetSize(0);
+    y_size = maxMedialnessOverScales->GetLargestPossibleRegion().GetSize(1);
+    z_size = maxMedialnessOverScales->GetLargestPossibleRegion().GetSize(2);
+
+    float a[3][3];
+    double* a_double;
+    float b[3][3];
+    float d[3];
+
+    float *float_ptr;
+    double *double_ptr;
+
+    float current_value;
+
+    for(x = 1; x < x_size - 1; x++)
+    {
+      index[0] = x;
+
+      if(x % 10 == 0)
+        std::cout << "x " << x << std::endl;
+
+      for(y = 1; y < y_size - 1; y++)
+      {
+        index[1] = y;
+
+        for(z = 1; z < z_size - 1; z++)
+        {
+          index[2] = z;
+
+          current_value = maxMedialnessOverScales->GetPixel(index);
+
+          current_hessian = hessianImages.back()->GetPixel(index);
+
+
+          //current_hessian.FixedArray(a_double);
+          a_double = current_hessian.GetDataPointer();
+
+          int u=0;
+          for(float_ptr = &a[0][0], double_ptr = a_double, u=0; u<6; u++, float_ptr++, double_ptr++)
+              *float_ptr = (float)*double_ptr;
+
+          NumericsHelper::calculateEigenDecompositionSymmetric3x3(a,b,d);
+
+
+
+        }
+      }
+    }
+}
+
+*/
 
 

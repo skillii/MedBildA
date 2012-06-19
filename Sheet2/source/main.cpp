@@ -77,6 +77,7 @@ int main(int argc, char** argv)
     tubeDetector.calcGradients();
 
     tubeDetector.calcMedialness();
+    tubeDetector.calcMaxMedialness();
 
     unsigned i,j;
     char path[101];
@@ -112,6 +113,7 @@ int main(int argc, char** argv)
     }
 
 
+
     ///////////////////////   save medialness pyramid
     std::vector<FloatImageType::Pointer> medialness = tubeDetector.getMedialnessImages();
 
@@ -131,6 +133,13 @@ int main(int argc, char** argv)
         volumeHandler.setVolume(medialness.at(i), lo, hi);
         volumeHandler.writeVolume(path);
     }
+
+       //////////////////////// save max medialness image
+
+       sprintf(path, "medialness/max.mhd");
+       volumeHandler.setVolume(tubeDetector.getMaxMedialnessImage(),min_orig_val, max_orig_val);
+       volumeHandler.writeVolume(path);
+
 
     }
 

@@ -18,6 +18,12 @@ class TubeDetection {
     FloatImageType::Pointer lungSegment;
     FloatImageType::Pointer raw;
     FloatImageType::Pointer lung;
+    FloatImageType::Pointer maxMedialnessOverScales;
+
+
+    //Eigenvectors, EV wit smallest eigenvalue at eigenvectors[0]
+    EigenVImageType::Pointer eigenvectors[3];
+
 
     std::vector<FloatImageType::Pointer> imagePyramid;
     std::vector<FloatImageType::Pointer> medialnessImages;
@@ -27,12 +33,14 @@ class TubeDetection {
     std::vector<FloatImageType::Pointer> gradientX, gradientY, gradientZ;
 
 
+
+
     static const int scale_levels;
     static const float tube_r[SCALE_LEVELS];
     static const int alpha_steps;
 
 
-
+    void allocateEigenvectorImage();
     float calcMedialness(unsigned level, unsigned x, unsigned y, unsigned z, float ew[3], float ev[3][3]);
 
 public:
@@ -43,6 +51,7 @@ public:
     void calcGradients();
 
     void calcMedialness();
+    void calcMaxMedialness();
 
     TubeDetection(FloatImageType::Pointer lungSegment, FloatImageType::Pointer img);
     virtual ~TubeDetection();
@@ -55,6 +64,11 @@ public:
     std::vector<FloatImageType::Pointer> getMedialnessImages()
     {
         return medialnessImages;
+    }
+
+    FloatImageType::Pointer getMaxMedialnessImage()
+    {
+        return this->maxMedialnessOverScales;
     }
 
     std::vector<FloatImageType::Pointer> getGradientImage(int dim)

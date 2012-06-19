@@ -21,6 +21,8 @@
 typedef itk::Image< float, 3 > FloatImageType;
 typedef itk::Image< float, 5 > HessianImageType;
 typedef itk::Image< float, 4 > PrimalImageType;
+typedef itk::Image< float, 4 > EigenVImageType;
+
 
 // used in VolumeHandler
 typedef itk::Image< signed short, 3 > ShortImageType;
