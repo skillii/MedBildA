@@ -36,7 +36,7 @@ typedef itk::OtsuThresholdImageFilter<FloatImageType, FloatImageType> ThresholdF
 typedef itk::BinaryImageToShapeLabelMapFilter<FloatImageType> ConnectedComponentFilter;
 typedef itk::ShapeLabelMapFilter<ConnectedComponentFilter::OutputImageType, ConnectedComponentFilter::OutputImageType> ShapeLabelFilter;
 typedef itk::LabelMapToLabelImageFilter<ConnectedComponentFilter::OutputImageType, FloatImageType> LabelMapToLabelImageFilter;
-
+typedef itk::ImageDuplicator< FloatImageType > DuplicatorType;
 
 //Attention!! Only one or the other!
 //#define USE_PRIMAL_DUAL_ROF 1
