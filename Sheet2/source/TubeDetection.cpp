@@ -16,8 +16,8 @@
 #define START_LEVEL (0) //number of scale-levels to skip
 
 const int TubeDetection::scale_levels = SCALE_LEVELS;
-const float TubeDetection::tube_r[SCALE_LEVELS] = {1.5, 1.5, 1.5, 1.5};
-const int TubeDetection::alpha_steps = 16;
+const float TubeDetection::tube_r[SCALE_LEVELS] = {1, 1, 1};
+const int TubeDetection::alpha_steps = 8;
 
 
 
@@ -143,15 +143,6 @@ void TubeDetection::calcGradients()
 
         //allocate new images for the gradients
 
-        /*
-        gradX = imagePyramid.at(i)->Clone();
-        gradY = imagePyramid.at(i)->Clone();
-        gradZ = imagePyramid.at(i)->Clone();
-
-        gradX->Allocate();
-        gradY->Allocate();
-        gradZ->Allocate();*/
-
         DuplicatorType::Pointer duplicator = DuplicatorType::New();
         duplicator->SetInputImage(imagePyramid.at(i));
         duplicator->Update();
@@ -201,10 +192,6 @@ void TubeDetection::calcGradients()
 
                     GradientImageFilter::OutputImagePixelType gradient = grad->GetPixel(index);
 
-                    /*
-                    gradX->SetPixel(index_f, gradient.GetDataPointer()[0]);
-                    gradY->SetPixel(index_f, gradient.GetDataPointer()[1]);
-                    gradZ->SetPixel(index_f, gradient.GetDataPointer()[2]); */
 
                     gradX->SetPixel(index_f, gradient[0]);
                     gradY->SetPixel(index_f, gradient[1]);
@@ -223,23 +210,21 @@ void TubeDetection::calcGradients()
 
 void TubeDetection::allocateEigenvectorImage()
 {
-    EigenVImageType::IndexType start;
-    EigenVImageType::SizeType size;
-    EigenVImageType::RegionType region;
+    FloatImageType::IndexType start;
+    FloatImageType::SizeType size;
+    FloatImageType::RegionType region;
 
     start[0] = 0;
     start[1] = 0;
     start[2] = 0;
-    start[3] = 0;
 
     size[0] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(0);
-    size[2] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(1);
-    size[3] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(2);
-    size[4] = 3;
+    size[1] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(1);
+    size[2] = imagePyramid.back()->GetLargestPossibleRegion().GetSize(2);
 
-    eigenvectors[0] = EigenVImageType::New();
-    eigenvectors[1] = EigenVImageType::New();
-    eigenvectors[2] = EigenVImageType::New();
+    eigenvector[0] = FloatImageType::New();
+    eigenvector[1] = FloatImageType::New();
+    eigenvector[2] = FloatImageType::New();
 
 
     region.SetSize(size);
@@ -247,14 +232,66 @@ void TubeDetection::allocateEigenvectorImage()
 
 
 
-    eigenvectors[0]->SetRegions(region);
-    eigenvectors[1]->SetRegions(region);
-    eigenvectors[2]->SetRegions(region);
+    eigenvector[0]->SetRegions(region);
+    eigenvector[1]->SetRegions(region);
+    eigenvector[2]->SetRegions(region);
 
 
-    eigenvectors[0]->Allocate();
-    eigenvectors[1]->Allocate();
-    eigenvectors[2]->Allocate();
+    eigenvector[0]->Allocate();
+    eigenvector[1]->Allocate();
+    eigenvector[2]->Allocate();
+}
+
+void TubeDetection::eigenValueDecomposition(int scale, HessianFilter::OutputImageType::IndexType index, float V[3][3], float d[3])
+{
+    HessianFilter::OutputImagePixelType current_hessian;
+    float *float_ptr;
+    double *double_ptr;
+    float a[3][3];
+    double* a_double;
+
+    current_hessian = hessianImages.at(scale)->GetPixel(index);
+
+
+    //current_hessian.FixedArray(a_double);
+    a_double = current_hessian.GetDataPointer();
+
+    int u=0;
+    for(float_ptr = &a[0][0], double_ptr = a_double, u=0; u<6; u++, float_ptr++, double_ptr++)
+        *float_ptr = (float)*double_ptr;
+
+
+    float V_unsorted[3][3];
+    float d_unsorted[3];
+
+    NumericsHelper::calculateEigenDecompositionSymmetric3x3(a,V_unsorted,d_unsorted);
+
+
+
+    //sort Eigenvalues: first one is the smallest one:
+
+    int i,j;
+    int min_ev;
+    NumericsHelper::min(d_unsorted, 3, &min_ev);
+
+    d[0] = d_unsorted[min_ev];
+    V[0][0] = V_unsorted[min_ev][0];
+    V[0][1] = V_unsorted[min_ev][1];
+    V[0][2] = V_unsorted[min_ev][2];
+
+
+
+    for(i = 0,j = 1; i < 3; i++)
+    {
+        if(i != min_ev)
+        {
+            V[j][0] = V_unsorted[i][0];
+            V[j][1] = V_unsorted[i][1];
+            V[j][2] = V_unsorted[i][2];
+            d[j] = d_unsorted[i];
+            j++;
+        }
+    }
 }
 
 void TubeDetection::calcMedialness()
@@ -265,15 +302,11 @@ void TubeDetection::calcMedialness()
     unsigned int y_size;
     unsigned int z_size;
 
-    HessianFilter::OutputImagePixelType current_hessian;
 
-    float a[3][3];
-    double* a_double;
-    float b[3][3];
+
+    float V[3][3];
     float d[3];
 
-    float *float_ptr;
-    double *double_ptr;
     FloatImageType::Pointer medialnessimage;
 
     std::cout << "Starting calculating medialness for level: ";
@@ -310,49 +343,10 @@ void TubeDetection::calcMedialness()
                     //Indices for gradient, forward differences
                     index[2] = z;
 
-                    current_hessian = hessianImages.at(i)->GetPixel(index);
 
+                    eigenValueDecomposition(i, index, V, d);
 
-                    //current_hessian.FixedArray(a_double);
-                    a_double = current_hessian.GetDataPointer();
-
-                    int u=0;
-                    for(float_ptr = &a[0][0], double_ptr = a_double, u=0; u<6; u++, float_ptr++, double_ptr++)
-                        *float_ptr = (float)*double_ptr;
-
-                    NumericsHelper::calculateEigenDecompositionSymmetric3x3(a,b,d);
-
-                    //////save Eigenvectors, with ascending Eigenvalues:
-
-
-                    /*itk::Vector<float, 3> v, grad;
-                    itk::Vector<float, 3> v_i[2];
-
-
-
-                    int min_ev;
-                    NumericsHelper::min(d, 3, &min_ev);
-
-                    eigenvectors[0]->set
-
-                    int p,q;
-                    for(p = 0, q = 0; p < 3; p++)
-                    {
-                        if(p != min_ev)
-                        {
-                            v_i[q].SetElement(0, ev[i][0]);
-                            v_i[q].SetElement(1, ev[i][1]);
-                            v_i[q].SetElement(2, ev[i][2]);
-                            q++;
-                        }
-                    }
-*/
-
-                    /////end saving Eigenvectors
-
-
-
-                    float medialness = calcMedialness(i, x, y, z, d, b);
+                    float medialness = calcMedialness(i, x, y, z, d, V);
 
                     medialnessimage->SetPixel(index, medialness);
                 }
@@ -373,17 +367,23 @@ void TubeDetection::calcMaxMedialness()
     unsigned int y_size;
     unsigned int z_size;
 
+    float V[3][3];
+    float d[3];
+
     FloatImageType::Pointer max_medialnessimage;
 
     FloatImageType::IndexType index;
 
     float scale_index[3];
+    HessianFilter::OutputImageType::IndexType indexi;
 
     DuplicatorType::Pointer duplicator = DuplicatorType::New();
     duplicator->SetInputImage(medialnessImages.at(medialnessImages.size() - 1));
     duplicator->Update();
 
     max_medialnessimage = duplicator->GetOutput();
+
+    allocateEigenvectorImage();
 
 
     std::cout << "Starting calculating maximum of medialness." << std::endl;
@@ -394,6 +394,7 @@ void TubeDetection::calcMaxMedialness()
 
     float current_medialness_value;
     float max_medialness_value;
+    int  max_medialness_scale_level;
 
     for(x = 0; x < x_size; x++)
     {
@@ -412,6 +413,7 @@ void TubeDetection::calcMaxMedialness()
 
           //This is the value we obtain from the largest resolution
           max_medialness_value = max_medialnessimage->GetPixel(index);
+          max_medialness_scale_level = medialnessImages.size() - 1;
 
           //Now we go through all scale levels and look for a maximum..
           for(unsigned i = 0; i < this->medialnessImages.size() - 1; i++)
@@ -423,12 +425,31 @@ void TubeDetection::calcMaxMedialness()
             current_medialness_value = NumericsHelper::trilinearInterp(medialnessImages.at(i), scale_index[0], scale_index[1], scale_index[2]);
 
             if(current_medialness_value > max_medialness_value)
+            {
               max_medialness_value = current_medialness_value;
+              max_medialness_scale_level = i;
+            }
 
           }
 
           //Now write the maximum into the image again
-          max_medialnessimage->SetPixel(index,max_medialness_value);
+          max_medialnessimage->SetPixel(index, max_medialness_value);
+
+
+
+          //now calculate and save the EV of that pixel:
+          indexi[0] = static_cast<int>(roundf(static_cast<float>(x) / powf(2,medialnessImages.size() - 1 - max_medialness_scale_level)));
+          indexi[1] = static_cast<int>(roundf(static_cast<float>(y) / powf(2,medialnessImages.size() - 1 - max_medialness_scale_level)));
+          indexi[2] = static_cast<int>(roundf(static_cast<float>(z) / powf(2,medialnessImages.size() - 1 - max_medialness_scale_level)));
+
+
+          eigenValueDecomposition(max_medialness_scale_level, indexi, V, d);
+
+
+          eigenvector[0]->SetPixel(index, V[0][0]);
+          eigenvector[1]->SetPixel(index, V[0][1]);
+          eigenvector[2]->SetPixel(index, V[0][2]);
+
         }
       }
     }
@@ -439,7 +460,7 @@ void TubeDetection::calcMaxMedialness()
 
 float TubeDetection::calcMedialness(unsigned level, unsigned x, unsigned y, unsigned z, float ew[3], float ev[3][3])
 {
-    int i,j;
+    int i;
 
 
     float alpha_step = 2*M_PI/alpha_steps;
@@ -453,22 +474,13 @@ float TubeDetection::calcMedialness(unsigned level, unsigned x, unsigned y, unsi
     itk::Vector<float, 3> v_i[2];
 
 
+    v_i[0].SetElement(0, ev[1][0]);
+    v_i[0].SetElement(1, ev[1][1]);
+    v_i[0].SetElement(2, ev[1][2]);
 
-    int min_ev;
-    NumericsHelper::min(ew, 3, &min_ev);
-
-
-    for(i = 0,j = 0; i < 3; i++)
-    {
-        if(i != min_ev)
-        {
-            v_i[j].SetElement(0, ev[i][0]);
-            v_i[j].SetElement(1, ev[i][1]);
-            v_i[j].SetElement(2, ev[i][2]);
-            j++;
-        }
-    }
-
+    v_i[1].SetElement(0, ev[2][0]);
+    v_i[1].SetElement(1, ev[2][1]);
+    v_i[1].SetElement(2, ev[2][2]);
 
 
 

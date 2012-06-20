@@ -6,9 +6,12 @@
 #include "Definitions.h"
 #include "VolumeHandler.h"
 #include "TubeDetection.h"
+#include "CenterlineExtraction.h"
 
 
 #define BUFLEN 100
+
+#define READ_RESULT 1
 
 using std::cout;
 using std::endl;
@@ -68,80 +71,128 @@ int main(int argc, char** argv)
     FloatImageType::Pointer lungSegment = volumeHandler.getHostMem();
 
 
-
-    TubeDetection tubeDetector(lungSegment, raw);
-
-    tubeDetector.cropLung();
-    tubeDetector.buildImagePyramid();
-    tubeDetector.calcHessian();
-    tubeDetector.calcGradients();
-
-    tubeDetector.calcMedialness();
-    tubeDetector.calcMaxMedialness();
-
-    unsigned i,j;
-    char path[101];
-
-    std::cout << "Writing files.." << std::endl;
-
-    ///////////////////////   save image pyramid
-    std::vector<FloatImageType::Pointer> imgPyramid = tubeDetector.getImgPyramid();
-
-
-    for(i = 0; i < imgPyramid.size(); i++)
+    if(READ_RESULT == 0)
     {
+      TubeDetection tubeDetector(lungSegment, raw);
+
+      tubeDetector.cropLung();
+      tubeDetector.buildImagePyramid();
+      tubeDetector.calcHessian();
+      tubeDetector.calcGradients();
+
+      tubeDetector.calcMedialness();
+      tubeDetector.calcMaxMedialness();
+
+      unsigned i,j;
+      char path[101];
+
+      std::cout << "Writing files.." << std::endl;
+
+      ///////////////////////   save image pyramid
+      std::vector<FloatImageType::Pointer> imgPyramid = tubeDetector.getImgPyramid();
+
+
+      for(i = 0; i < imgPyramid.size(); i++)
+      {
         sprintf(path, "pyramid/%d.mhd", i);
 
         volumeHandler.setVolume(imgPyramid.at(i), min_orig_val, max_orig_val);
         volumeHandler.writeVolume(path);
-    }
+      }
 
     ///////////////////////   save gradient images
 
-    for (j = 1; j <= 3; j++)
-    {
-      std::vector<FloatImageType::Pointer> grad = tubeDetector.getGradientImage(j);
-
-
-      for(i = 0; i < grad.size(); i++)
+      for (j = 1; j <= 3; j++)
       {
+        std::vector<FloatImageType::Pointer> grad = tubeDetector.getGradientImage(j-1);
+
+
+        for(i = 0; i < grad.size(); i++)
+        {
           sprintf(path, "gradients/%d/%d.mhd",j, i);
 
           volumeHandler.setVolume(grad.at(i), min_orig_val, max_orig_val);
           volumeHandler.writeVolume(path);
+        }
+      }
+
+
+    /////////////////////// save Eigenvector images
+      for (j = 0; j < 3; j++)
+      {
+        FloatImageType::Pointer ev = tubeDetector.getEVImage(j);
+
+
+        sprintf(path, "EV/%d.mhd",j);
+
+        volumeHandler.setVolume(ev, min_orig_val, max_orig_val);
+        volumeHandler.writeVolume(path);
+      }
+
+
+
+    ///////////////////////   save medialness pyramid
+      std::vector<FloatImageType::Pointer> medialness = tubeDetector.getMedialnessImages();
+
+      float lo,hi;
+
+      while(1) {
+      std::cout << "enter min value: " << std::endl;
+      std::cin >> lo;
+
+      std::cout << "enter max value: " << std::endl;
+      std::cin >> hi;
+
+      for(i = 0; i < medialness.size(); i++)
+      {
+          sprintf(path, "medialness/%d.mhd", i);
+
+          volumeHandler.setVolume(medialness.at(i), lo, hi);
+           volumeHandler.writeVolume(path);
+      }
+
+       //////////////////////// save max medialness image
+
+         sprintf(path, "medialness/max.mhd");
+         volumeHandler.setVolume(tubeDetector.getMaxMedialnessImage(),min_orig_val, max_orig_val);
+         volumeHandler.writeVolume(path);
+      }
+    }
+
+    CenterlineExtraction ce;
+
+
+    int result = ce.readSavedFiles();
+
+    if(result == EXIT_SUCCESS)
+    {
+      ce.performNonMaximaSurpression();
+
+
+      FloatImageType::Pointer medialness = ce.getMedialnessImage();
+
+      float lo,hi;
+      char path[101];
+
+      while(1)
+      {
+        std::cout << "enter min value: " << std::endl;
+        std::cin >> lo;
+
+        std::cout << "enter max value: " << std::endl;
+        std::cin >> hi;
+
+
+        sprintf(path, "medialness/nonmaxima.mhd");
+
+        volumeHandler.setVolume(medialness, lo, hi);
+        volumeHandler.writeVolume(path);
       }
     }
 
 
 
-    ///////////////////////   save medialness pyramid
-    std::vector<FloatImageType::Pointer> medialness = tubeDetector.getMedialnessImages();
 
-    float lo,hi;
-
-    while(1) {
-    std::cout << "enter min value: " << std::endl;
-    std::cin >> lo;
-
-    std::cout << "enter max value: " << std::endl;
-    std::cin >> hi;
-
-    for(i = 0; i < medialness.size(); i++)
-    {
-        sprintf(path, "medialness/%d.mhd", i);
-
-        volumeHandler.setVolume(medialness.at(i), lo, hi);
-        volumeHandler.writeVolume(path);
-    }
-
-       //////////////////////// save max medialness image
-
-       sprintf(path, "medialness/max.mhd");
-       volumeHandler.setVolume(tubeDetector.getMaxMedialnessImage(),min_orig_val, max_orig_val);
-       volumeHandler.writeVolume(path);
-
-
-    }
 
     return EXIT_SUCCESS;
 }
@@ -149,7 +200,7 @@ int main(int argc, char** argv)
 
 bool ParseCommandLineSettings(int argc, char** argv)
 {
-    return true;
+  return true;
 }
 
 void PrintUsage()

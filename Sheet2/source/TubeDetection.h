@@ -11,7 +11,7 @@
 #include "Definitions.h"
 #include <vector>
 
-#define SCALE_LEVELS 5
+#define SCALE_LEVELS 3
 
 
 class TubeDetection {
@@ -21,8 +21,8 @@ class TubeDetection {
     FloatImageType::Pointer maxMedialnessOverScales;
 
 
-    //Eigenvectors, EV wit smallest eigenvalue at eigenvectors[0]
-    EigenVImageType::Pointer eigenvectors[3];
+    //Eigenvector with Smallest eigenvalue (x = eigenvector[0],...)
+    FloatImageType::Pointer eigenvector[3];
 
 
     std::vector<FloatImageType::Pointer> imagePyramid;
@@ -37,13 +37,16 @@ class TubeDetection {
 
     static const int scale_levels;
     static const float tube_r[SCALE_LEVELS];
-    static const int alpha_steps;
+
 
 
     void allocateEigenvectorImage();
     float calcMedialness(unsigned level, unsigned x, unsigned y, unsigned z, float ew[3], float ev[3][3]);
+    void eigenValueDecomposition(int scale, HessianFilter::OutputImageType::IndexType index, float V[3][3], float d[3]);
 
 public:
+
+    static const int alpha_steps;
 
     void cropLung();
     void buildImagePyramid();
@@ -75,12 +78,20 @@ public:
     {
       switch(dim)
       {
-        case 1: return gradientX;
-        case 2: return gradientY;
-        case 3: return gradientZ;
+        case 0: return gradientX;
+        case 1: return gradientY;
+        case 2: return gradientZ;
         default: throw 0;
       }
     }
+
+
+    FloatImageType::Pointer getEVImage(int dim)
+    {
+      return eigenvector[dim];
+    }
+
+
 };
 
 #endif /* TUBEDETECTION_H_ */

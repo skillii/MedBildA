@@ -35,7 +35,7 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${PROJECT_SOURCE_DIR}/source)
 
-add_executable(miaKUSheet2 source/main.cpp source/VolumeHandler.cpp source/TubeDetection.cpp)
+add_executable(miaKUSheet2 source/main.cpp source/VolumeHandler.cpp source/TubeDetection.cpp source/CenterlineExtraction.cpp)
 
 target_link_libraries(miaKUSheet2 ${ITK_LIBRARIES})
 
