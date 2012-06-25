@@ -1,0 +1,8 @@
+bin/
+build/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+ITKIOFactoryRegistration
+*~
+cmake_install.cmake

@@ -67,7 +67,6 @@ FloatImageType::Pointer TVL1::Denoise(void)
 	//===================================================================
 	//BUILD DUAL IMAGES, Start values = f
 	//===================================================================
-    typedef itk::ImageDuplicator< FloatImageType > DuplicatorType;
 	DuplicatorType::Pointer duplicator = DuplicatorType::New();
 	duplicator->SetInputImage(this->img);
     duplicator->Update();

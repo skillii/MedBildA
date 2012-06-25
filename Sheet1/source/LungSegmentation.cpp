@@ -34,7 +34,7 @@ void LungSegmentation::run()
 	//==================================================================
 	ThresholdFilterType::Pointer t_filter = ThresholdFilterType::New();
 
-	t_filter->SetInput(this->img_);
+    t_filter->SetInput(this->img_);
 
 	t_filter->SetOutsideValue(255);
 	t_filter->SetInsideValue(0);
