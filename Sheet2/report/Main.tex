@@ -102,7 +102,12 @@
 % **************************************************************************************************
 % user-defined part
 
-\chapter{Sheet 2}
+\chapter{Task Description}
+
+The task was to extract the center line of the vessels in the lung.
+Therefore it was first necessary to detect the vessels, which have a tubular structure. The
+next step was to find the center-line of the tubes. And in the last step
+these center lines should be reconnected, to get a tree of the blood vessels.
 
 \section{Tube Detection Filter}
 
@@ -110,11 +115,11 @@ This step was implemented according to Algorithm 3 in the lecture.
 An image pyramid with 3 different scale levels was used.
 For the tube detection we used a radius of 1 voxel.
 
-\section{Centerline Extraction and Reconstruction}
+\section{Center line Extraction and Reconstruction}
 
-\subsection{Non maximum Supression}
+\subsection{Non maximum Suppression}
 
-This step was also implemented according the lecture notes.
+This step was also implemented according the lecture notes:
 
 \subsection{Queue based reconnection}
 
@@ -124,12 +129,12 @@ From each voxel in the queue we executed the following steps:
 
 \begin{enumerate}
  \item Set \textit{skipped\_voxel} to zero.
- \item Add current voxel to the reconnected centerline.
+ \item Add current voxel to the reconnected center line.
  \item Retrieve the tube direction of the current voxel (Eigenvector of smallest Eigenvalue of hessian matrix).
  \item Move 1 voxel along the Tube Direction.
  \item If value of the current voxel is greater than \textit{threshold\_low}:
   \begin{enumerate}
-    \item Add all Voxels of the queue, containing the skipped voxel to the centerline.
+    \item Add all Voxels of the queue, containing the skipped voxel to the center line.
     \item Go to Step 1.
   \end{enumerate}
  \item If value of current voxel is smaller than \textit{threshold\_low}:
@@ -147,13 +152,22 @@ The following thresholds were used:
  \item \textit{threshold\_high}: 0.15
 \end{itemize}
 
+\chapter{Outcome of Experiment}
 
+The resulting tree of the vessels was pretty impressive. The larger vessels were
+detected and reconnected very well. At the outer regions of the lung, our algorithm had some problems
+reconnecting ALL of the small vessels to a tree.
+For perfectly reconnecting the smaller vessels, a more sophisticated algorithm(e.g using a spanning tree) is necessary.
+Maybe also a dataset with a higher resolution would help to detect smaller vessels better.
+
+We learned some new algorithms and how to use the ITK in a proper way.
+It was also our first time we applied computer vision algorithms on a 3D dataset (volume).
 
 
 \newpage
 
 
-\section{Results}
+\section{Results (Output Images)}
 
 \begin{figure}[h!]
  \centering
