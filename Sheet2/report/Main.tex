@@ -1,0 +1,192 @@
+% **************************************************************************************************
+% ** SPSC Report and Thesis Template
+% **************************************************************************************************
+%
+% ***** Authors *****
+% Daniel Arnitz, Paul Meissner, Stefan Petrik
+% Signal Processing and Speech Communication Laboratory (SPSC)
+% Graz University of Technology (TU Graz), Austria
+%
+% ***** Changelog *****
+% 0.1   2010-01-25   extracted from report template by Daniel Arnitz (not ready yet)
+% 0.2   2010-02-08   added thesis titlepage and modified layout (not ready yet)
+% 0.3   2010-02-18   added TUG logo and statutory declaration
+% 0.4   2010-02-18   moved the information fields below \input{./base/packages} (encoding...)
+% 0.5   2010-03-02   added \ShortTitle to fix problems with long thesis titles
+%                    added \ThesisType (makes the template suitable for MSc, BSc, PhD, ... Thesis)
+%
+% ***** Todo *****
+% - Introduction/Usage
+% **************************************************************************************************
+
+% **************************************************************************************************
+% basic setup
+\newcommand{\DocumentType}{report} % "thesis" / "report"
+\newcommand{\DocumentLanguage}{de} % "en" / "de"
+\newcommand{\Twosided}{} % "twoside" / ""
+
+
+% **************************************************************************************************
+% template setup -- do not change these unless you know what you are doing!
+\input{./base/packages}
+\input{./base/layout_\DocumentType}
+\input{./base/macros}
+\graphicspath{{./drawings/}{./plots/}{./images/}}
+% **************************************************************************************************
+% ATTENTION: Make sure that makeindex is set to -s "./base/index.sty"
+% **************************************************************************************************
+
+% uncomment to get watermarks:
+% \usepackage[first,bottom,light,draft]{draftcopy}
+% \draftcopyName{ENTWURF}{160}
+
+
+% **************************************************************************************************
+% information fields
+
+% general
+\newcommand{\DocumentTitle}{Medizinische Bildanalyse UE}
+\newcommand{\DocumentSubtitle}{Sheet 2}
+\newcommand{\ShortTitle}{Sheet 2} % used in headers (keep short!)
+\newcommand{\DocumentAuthor}{Ebner Thomas, Christoph Bichler}
+\newcommand{\DocumentDate}{Graz, \today}
+%    for thesis only (will be ignored for reports)
+\newcommand{\ThesisType}{Master's Thesis}
+\newcommand{\Organizations}{Signal Processing and Speech Communications Laboratory \\ Graz University of Technology \\[1cm] on behalf of \\ Some Company} % SPSC \\ TUG \\[1cm] on behalf of \\ A Nice Company
+\newcommand{\Advisors}{Dipl.-Ing. Dr. Assoc.Prof. Klaus Witrisal \\ Dipl.-Ing. Paul Meissner} % Advisor 1 \\ Advisor 2 \\ ...
+\newcommand{\Supervisors}{Univ.-Prof. Dipl.-Ing. Dr.techn. Gernot Kubin}
+
+% revision number
+\newcommand{\RevPrefix}{}
+\newcommand{\RevLarge}{1}
+\newcommand{\RevSmall}{0}
+
+% confidential?
+\newcommand{\ConfidNote}{}% {"confidential", "eyes only", ...}
+
+% short command for vectors
+\newcommand{\vect}[1]{\mathbf{#1}}
+
+
+\begin{document}
+
+%listingstyle:
+\definecolor{orange}{rgb}{0.75,0.65,0}
+\definecolor{gruen}{rgb}{0,0.5,0}
+\definecolor{listinggray}{gray}{0.97}
+\definecolor{listingshadow}{gray}{0.2}
+\lstloadlanguages{Matlab}
+\lstset{frame=shadowbox,
+		rulesepcolor=\color{listingshadow},
+		numbers=left,
+		basicstyle=\scriptsize\ttfamily,
+		numberstyle=\tiny,
+		keywordstyle=\color{blue}\bfseries, % bold black keywords
+		identifierstyle=, % nothing happens
+		commentstyle=\color{gruen}, % comments
+		stringstyle=\color{orange}, % typewriter type for strings
+		showstringspaces=false,
+		tabsize=4,
+		backgroundcolor=\color{listinggray}
+        }
+
+% **************************************************************************************************
+% titlepage
+\input{./base/titlepage_\DocumentType}
+
+% statutory declaration for theses
+\ifthenelse{\equal{\DocumentType}{thesis}}{\input{./base/declaration}}{}
+
+
+% **************************************************************************************************
+% **************************************************************************************************
+% user-defined part
+
+\chapter{Sheet 2}
+
+\section{Tube Detection Filter}
+
+This step was implemented according to Algorithm 3 in the lecture.
+An image pyramid with 3 different scale levels was used.
+For the tube detection we used a radius of 1 voxel.
+
+\section{Centerline Extraction and Reconstruction}
+
+\subsection{Non maximum Supression}
+
+This step was also implemented according the lecture notes.
+
+\subsection{Queue based reconnection}
+
+We put all voxels with a value greater than \textit{threshold\_high} into a queue.
+
+From each voxel in the queue we executed the following steps:
+
+\begin{enumerate}
+ \item Set \textit{skipped\_voxel} to zero.
+ \item Add current voxel to the reconnected centerline.
+ \item Retrieve the tube direction of the current voxel (Eigenvector of smallest Eigenvalue of hessian matrix).
+ \item Move 1 voxel along the Tube Direction.
+ \item If value of the current voxel is greater than \textit{threshold\_low}:
+  \begin{enumerate}
+    \item Add all Voxels of the queue, containing the skipped voxel to the centerline.
+    \item Go to Step 1.
+  \end{enumerate}
+ \item If value of current voxel is smaller than \textit{threshold\_low}:
+  \begin{enumerate}
+   \item Increment \textit{skipped\_voxel}, and add the current voxel to a queue
+   containing the skipped voxels.
+   \item If skipped \textit{skipped\_voxel} is equal to 3:  abort.
+   \item Go to step 2   
+  \end{enumerate}
+\end{enumerate}
+
+The following thresholds were used:
+\begin{itemize}
+ \item \textit{threshold\_low}: 0.04
+ \item \textit{threshold\_high}: 0.15
+\end{itemize}
+
+
+
+
+\newpage
+
+
+\section{Results}
+
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=14.5cm,keepaspectratio=true]{./figures/max-white.png}
+ \caption{Max Medialness over 3 different scales from 4 different viewpoints.}
+ \label{fig:max}
+\end{figure}
+
+
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=15cm,keepaspectratio=true]{./figures/nonmaxima-white.png}
+ \caption{Max Medialness after Non-Maximum Supression from 4 different viewpoints.}
+ \label{fig:nonmaxima}
+\end{figure}
+
+
+\begin{figure}[h!]
+ \centering
+ \includegraphics[width=15cm,keepaspectratio=true]{./figures/centerline-white.png}
+ \caption{Final Centerline after reconnection from 4 different viewpoints.}
+ \label{fig:centerline}
+\end{figure}
+
+
+% **************************************************************************************************
+% **************************************************************************************************
+
+%\appendix
+%\bibliographystyle{/.base/ieeetran}
+%\bibliography{_bibliography}
+
+% place all floats and create label on last page
+\FloatBarrier\label{end-of-document}
+\end{document}
+

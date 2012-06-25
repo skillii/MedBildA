@@ -1,0 +1,106 @@
+% **************************************************************************************************
+% ** SPSC Report and Thesis Template
+% **************************************************************************************************
+%
+% ***** Authors *****
+% Daniel Arnitz, Paul Meissner, Stefan Petrik
+% Signal Processing and Speech Communication Laboratory (SPSC)
+% Graz University of Technology (TU Graz), Austria
+%
+% ***** Changelog *****
+%
+% ***** Todo *****
+%
+% **************************************************************************************************
+
+
+
+\documentclass[%
+a4paper,% !!! ATTENTION: geometry package below !!!
+\Twosided,% !!! ATTENTION: geometry package below !!!
+openany,% begin chapters with new right page (openright) or don't care (openany)
+11pt,%
+fleqn,% equations not centered, but on the left side
+tablecaptionbelow,% captions below tables
+% titlepage,% use title
+pointlessnumbers,% do not generate point at the end of section numbers (e.g. 1.4.5 instead of 1.4.5.)
+final,%
+]{scrreprt}% (KOMA)
+
+\usepackage[paper=a4paper,\Twosided,%
+textheight=246mm,%
+textwidth=160mm,%
+heightrounded=true,% round textheight to multiple of lines (avoids overfull vboxes)
+ignoreall=true,% do not include header, footer, and margins in calculations
+marginparsep=5pt,% marginpar only used for signs (centered), thus only small sep. needed
+marginparwidth=10mm,% prevent margin notes to be out of page
+hmarginratio=2:1,% set margin ration (inner:outer for twoside) - (2:3 is default)
+]{geometry}%
+
+
+% master
+\usepackage{ifthen}% for optional parts
+\usepackage[utf8]{inputenc}% German special characters
+\ifthenelse{\equal{\DocumentLanguage}{en}}{\usepackage[USenglish]{babel}}{}%
+\ifthenelse{\equal{\DocumentLanguage}{de}}{\usepackage[ngerman]{babel}}{}%
+\usepackage[%
+headtopline,plainheadtopline,% activate all lines (header and footer)
+headsepline,plainheadsepline,%
+footsepline,plainfootsepline,%
+footbotline,plainfootbotline,%
+automark% auto update \..mark
+]{scrpage2}% (KOMA)
+\usepackage{makeidx}% used to make an index directory
+\usepackage[]{caption}% customize captions
+\usepackage{multicol}%
+\usepackage[stable,bottom,hang,splitrule,multiple,symbol*]{footmisc}% customize footnotes
+
+
+% text
+\usepackage{varioref}% improved references
+\usepackage{color}% e.g., for color boxes
+\usepackage{rotating}% to rotate objects
+\usepackage{gensymb}% symbols (perthousand, Celsius, ...)
+\usepackage[right]{eurosym}% euro symbol on the right side (51 EUR)
+\usepackage[normalem]{ulem}% cross-out, strike-out, underlines (normalem: keep \emph italic)
+%\usepackage[safe]{textcomp}% loading in safe mode to avoid problems (see LaTeX companion)
+%\usepackage[geometry,misc]{ifsym}% technical symbols
+\usepackage{remreset}%\@removefromreset commands (e.g., for continuous footnote numbering)
+\usepackage[%
+breaklinks=true,% allow line break in links
+colorlinks=true,% if false: framed link
+linkcolor=black,anchorcolor=black,citecolor=black,filecolor=black,%
+menucolor=black,urlcolor=black]{hyperref}% hyperlinks for references
+
+
+% math
+\usepackage{amsmath,amssymb,amstext,bm} % use math packages
+\usepackage{mathcomp}% symbols (perthousand, ...) in math mode
+
+
+% graphics
+\usepackage{graphicx}% use simple graphics
+\usepackage{subfigure}% subfigures (a),(b),(c)... within figures
+\usepackage{flafter}% place floats always after reference
+\usepackage{placeins}% preventing floats from crossing a barrier
+\usepackage{float}% to place floats !HERE!
+\usepackage{psfrag}% replace text in eps figures
+
+
+% tables
+\usepackage{hhline}% hline doesn't work with colored columns, so using hhline
+\usepackage{longtable}% for tables longer than one page
+\usepackage{dcolumn}% for number alignment in tables
+\usepackage{colortbl}% color in tables
+
+
+% listings
+%\usepackage{alltt}% verbatim environment with commands available
+\usepackage{listings}% program code listings
+
+
+% other
+%\usepackage{layout}% graphical page layout (spacings)
+\usepackage{xspace}% add space after macros if not followed by punctuation character
+\makeindex% used for index creation
+
