@@ -551,7 +551,7 @@ float TubeDetection::calcMedialness(unsigned level, unsigned x, unsigned y, unsi
 
 
 
-    float final = s-rc;
+    float final = s-0.5*rc;
 
     if(final < 0)
         final = 0;

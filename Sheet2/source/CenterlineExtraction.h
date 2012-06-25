@@ -10,7 +10,7 @@
 
 
 #include "VolumeHandler.h"
-//#include <queu>
+#include <queue>
 
 class CenterlineExtraction
 {
@@ -18,6 +18,7 @@ class CenterlineExtraction
    VolumeHandler volumeHandler;
    FloatImageType::Pointer eigenvector[3];
    FloatImageType::Pointer maxMedialnessOverScales;
+   FloatImageType::Pointer centerlineImage;
 
    float min_vals_eigenvector[3];
    float max_vals_eigenvector[3];
@@ -26,9 +27,16 @@ class CenterlineExtraction
 
    static const float threshold_low;
    static const float threshold_high;
+   static const int skippixels;
 
 
-   //std::queu
+   std::queue<FloatImageType::IndexType> reconnectionQueue;
+
+
+   void performReconnection(FloatImageType::IndexType index, itk::Vector<float, 3> direction);
+   void SetAllPixels(FloatImageType::Pointer img, float value);
+   //float getMaxNeighbour(FloatImageType::IndexType index, FloatImageType::IndexType &neighbour);
+   float getMaxNeighbour(FloatImageType::IndexType index, itk::Vector<float, 3> &direction);
 
 public:
 
@@ -40,10 +48,16 @@ public:
    int readSavedFiles();
 
    void performNonMaximaSurpression();
+   void performReconnection();
 
    FloatImageType::Pointer getMedialnessImage()
    {
-     return maxMedialnessOverScales;
+       return maxMedialnessOverScales;
+   }
+
+   FloatImageType::Pointer getCenterlineImage()
+   {
+       return centerlineImage;
    }
 
 };

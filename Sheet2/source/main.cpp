@@ -166,28 +166,28 @@ int main(int argc, char** argv)
 
     if(result == EXIT_SUCCESS)
     {
-      ce.performNonMaximaSurpression();
+        ce.performNonMaximaSurpression();
+        ce.performReconnection();
 
+        FloatImageType::Pointer medialness = ce.getMedialnessImage();
 
-      FloatImageType::Pointer medialness = ce.getMedialnessImage();
-
-      float lo,hi;
-      char path[101];
-
-      while(1)
-      {
-        std::cout << "enter min value: " << std::endl;
-        std::cin >> lo;
-
-        std::cout << "enter max value: " << std::endl;
-        std::cin >> hi;
-
+        char path[101];
 
         sprintf(path, "medialness/nonmaxima.mhd");
 
-        volumeHandler.setVolume(medialness, lo, hi);
+        volumeHandler.setVolume(medialness, 0, 100);
         volumeHandler.writeVolume(path);
-      }
+
+
+        FloatImageType::Pointer centerline = ce.getCenterlineImage();
+
+
+        sprintf(path, "medialness/centerline.mhd");
+
+        volumeHandler.setVolume(centerline, 0, 100);
+        volumeHandler.writeVolume(path);
+
+
     }
 
 
